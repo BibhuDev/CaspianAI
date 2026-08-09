@@ -1,0 +1,48 @@
+{
+  "name": "threadgraph",
+  "version": "1.0.0",
+  "description": "AI-powered conversation intelligence graph connecting Email, Slack, and GitHub with provenance tracking",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "worker": "node src/workers/extractionWorker.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "node src/scripts/seed.js",
+    "test:extraction": "node src/scripts/testExtraction.js"
+  },
+  "keywords": [
+    "caspian",
+    "knowledge-graph",
+    "slack",
+    "email",
+    "github",
+    "llm",
+    "pgvector",
+    "bullmq"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.3.1",
+    "bullmq": "^5.41.0",
+    "caspian-sdk": "^0.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "ioredis": "^5.5.0",
+    "morgan": "^1.10.0",
+    "openai": "^4.85.0",
+    "pg": "^8.13.3",
+    "uuid": "^11.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "prisma": "^6.3.1"
+  }
+}

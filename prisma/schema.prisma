@@ -1,0 +1,94 @@
+// Prisma schema for ThreadGraph
+// Graph-in-Relational Setup with pgvector
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+enum NodeType {
+  PERSON
+  CONVERSATION
+  PROJECT
+  DECISION
+  TASK
+  COMMITMENT
+  GITHUB_PR
+  GITHUB_COMMIT
+  GITHUB_ISSUE
+}
+
+enum RelationshipType {
+  COMMITTED_TO
+  DECIDED_IN
+  IMPLEMENTS
+  BLOCKS
+  PART_OF
+  MENTIONS
+  CREATED_BY
+}
+
+enum PlatformType {
+  SLACK
+  EMAIL
+  GITHUB
+}
+
+model Node {
+  id         String                 @id @default(uuid()) @db.Uuid
+  type       NodeType
+  title      String
+  summary    String                 @db.Text
+  metadata   Json                   @default("{}") @db.JsonB
+  embedding  Unsupported("vector(1536)")?
+  created_at DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at DateTime               @updatedAt @db.Timestamptz(6)
+
+  // Graph relations
+  outgoingEdges Edge[] @relation("SourceNode")
+  incomingEdges Edge[] @relation("TargetNode")
+
+  @@index([type])
+  @@index([title])
+  @@map("nodes")
+}
+
+model Edge {
+  id                String           @id @default(uuid()) @db.Uuid
+  source_node_id    String           @db.Uuid
+  target_node_id    String           @db.Uuid
+  relationship_type RelationshipType
+  created_at        DateTime         @default(now()) @db.Timestamptz(6)
+  source_metadata   Json             @default("{}") @db.JsonB
+
+  // Relational mappings
+  sourceNode Node @relation("SourceNode", fields: [source_node_id], references: [id], onDelete: Cascade)
+  targetNode Node @relation("TargetNode", fields: [target_node_id], references: [id], onDelete: Cascade)
+
+  @@index([source_node_id])
+  @@index([target_node_id])
+  @@index([relationship_type])
+  @@map("edges")
+}
+
+model RawMessage {
+  id           String       @id @default(uuid()) @db.Uuid
+  platform     PlatformType
+  external_id  String?      @db.VarChar(255)
+  content      String       @db.Text
+  raw_payload  Json         @default("{}") @db.JsonB
+  processed    Boolean      @default(false)
+  created_at   DateTime     @default(now()) @db.Timestamptz(6)
+  processed_at DateTime?    @db.Timestamptz(6)
+
+  @@index([platform])
+  @@index([processed])
+  @@index([external_id])
+  @@map("raw_messages")
+}
